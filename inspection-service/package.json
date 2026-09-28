@@ -1,6 +1,6 @@
 {
   "name": "oms-inspection-service",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OMS inspection record management microservice",
   "main": "src/server.js",
   "scripts": {
