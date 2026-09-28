@@ -11,12 +11,14 @@ function validateInspection(input) {
   if (!input.structureId) errors.push('structureId is required');
 
   const rating = input.conditionRating;
-  if (!Number.isInteger(rating) || rating < 1 || rating >= 5) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     errors.push('conditionRating must be a whole number from 1 to 5');
   }
 
   if (!input.inspectionDate || Number.isNaN(Date.parse(input.inspectionDate))) {
     errors.push('inspectionDate must be a valid date');
+  } else if (new Date(input.inspectionDate) > new Date()) {
+    errors.push('inspectionDate cannot be in the future');
   }
 
   (input.findings || []).forEach((f, i) => {
@@ -46,7 +48,8 @@ function calculatePriority(conditionRating, findings = []) {
  * Is it allowed to move an inspection from one status to another?
  */
 function canTransition(from, to) {
-  return STATUS_TRANSITIONS[from].includes(to);
+  const allowed = STATUS_TRANSITIONS[from] || [];
+  return allowed.includes(to);
 }
 
 module.exports = { validateInspection, calculatePriority, canTransition };
