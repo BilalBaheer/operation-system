@@ -17,6 +17,8 @@ function validateInspection(input) {
 
   if (!input.inspectionDate || Number.isNaN(Date.parse(input.inspectionDate))) {
     errors.push('inspectionDate must be a valid date');
+  } else if (new Date(input.inspectionDate) > new Date()) {
+    errors.push('inspectionDate cannot be in the future');
   }
 
   (input.findings || []).forEach((f, i) => {
@@ -46,7 +48,8 @@ function calculatePriority(conditionRating, findings = []) {
  * Is it allowed to move an inspection from one status to another?
  */
 function canTransition(from, to) {
-  return STATUS_TRANSITIONS[from].includes(to);
+  const allowed = STATUS_TRANSITIONS[from] || [];
+  return allowed.includes(to);
 }
 
 module.exports = { validateInspection, calculatePriority, canTransition };
