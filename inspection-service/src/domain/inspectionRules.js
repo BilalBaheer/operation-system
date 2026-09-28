@@ -11,7 +11,7 @@ function validateInspection(input) {
   if (!input.structureId) errors.push('structureId is required');
 
   const rating = input.conditionRating;
-  if (!Number.isInteger(rating) || rating < 1 || rating >= 5) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     errors.push('conditionRating must be a whole number from 1 to 5');
   }
 
