@@ -1,8 +1,6 @@
-# Operation System (OMS)
+# Operation System 
 
-Cloud-based Operations Management System for inspection and rehabilitation project management.
-
-This repository holds the **inspection record management module** built for my MSIT capstone.
+Cloud-based Operations Management System for  project management.
 
 ## inspection-service
 
