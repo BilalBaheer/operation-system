@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-01T18:10:02.574Z",
+  "durationSec": 15,
+  "connections": 10,
+  "idleRssMb": {
+    "web-gateway": 74,
+    "auth-service": 63.4,
+    "inspection-service": 62.1
+  },
+  "results": [
+    {
+      "scenario": "Gateway health check",
+      "requests": 54885,
+      "throughputRps": 3659,
+      "p50Ms": 1,
+      "p90Ms": 3,
+      "p97_5Ms": 10,
+      "p99Ms": 23,
+      "avgMs": 2.05,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 111.8,
+        "auth-service": 63.4,
+        "inspection-service": 62.1
+      }
+    },
+    {
+      "scenario": "List inspections (via gateway)",
+      "requests": 5847,
+      "throughputRps": 390,
+      "p50Ms": 21,
+      "p90Ms": 44,
+      "p97_5Ms": 65,
+      "p99Ms": 80,
+      "avgMs": 25.3,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 115.1,
+        "auth-service": 63.4,
+        "inspection-service": 101.3
+      }
+    },
+    {
+      "scenario": "List inspections (direct to service)",
+      "requests": 13518,
+      "throughputRps": 901,
+      "p50Ms": 9,
+      "p90Ms": 13,
+      "p97_5Ms": 35,
+      "p99Ms": 40,
+      "avgMs": 10.64,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 113.9,
+        "auth-service": 63.4,
+        "inspection-service": 103.5
+      }
+    },
+    {
+      "scenario": "Get one inspection",
+      "requests": 9356,
+      "throughputRps": 624,
+      "p50Ms": 13,
+      "p90Ms": 22,
+      "p97_5Ms": 41,
+      "p99Ms": 47,
+      "avgMs": 15.57,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 118.8,
+        "auth-service": 63.4,
+        "inspection-service": 105.8
+      }
+    },
+    {
+      "scenario": "Create inspection (write + outbox)",
+      "requests": 4246,
+      "throughputRps": 283,
+      "p50Ms": 30,
+      "p90Ms": 54,
+      "p97_5Ms": 74,
+      "p99Ms": 91,
+      "avgMs": 35.01,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 119.7,
+        "auth-service": 63.4,
+        "inspection-service": 106.6
+      }
+    },
+    {
+      "scenario": "Login (bcrypt cost 10)",
+      "requests": 161,
+      "throughputRps": 11,
+      "p50Ms": 823,
+      "p90Ms": 1229,
+      "p97_5Ms": 1456,
+      "p99Ms": 2051,
+      "avgMs": 899.61,
+      "errorRatePct": 0,
+      "peakRssMb": {
+        "web-gateway": 119.2,
+        "auth-service": 72.4,
+        "inspection-service": 106.6
+      }
+    }
+  ]
+}
