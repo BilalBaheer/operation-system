@@ -19,8 +19,11 @@ function toRecord(row, findings = []) {
   };
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function createPostgresRepository(pool) {
   async function findById(id) {
+    if (!UUID_PATTERN.test(id)) return null; // PostgreSQL throws on bad UUIDs, so treat them as "not found"
     const { rows } = await pool.query('SELECT * FROM inspections WHERE id = $1', [id]);
     if (!rows[0]) return null;
     const f = await pool.query(
