@@ -5,5 +5,8 @@
   "scripts": {
     "seed-demo": "node seed-demo.js",
     "load-test": "node load-test.js"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0"
   }
 }
