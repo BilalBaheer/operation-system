@@ -6,7 +6,7 @@ const { createInspectionService } = require('../src/services/inspectionService')
 const { createInMemoryRepository } = require('../src/repositories/inMemoryInspectionRepository');
 
 process.env.JWT_SECRET = 'test-secret';
-const token = (role) => jwt.sign({ sub: `user-${role}`, role }, process.env.JWT_SECRET);
+const token = (role) => jwt.sign({ sub: `user-${role}`, role }, process.env.JWT_SECRET, { issuer: 'oms-auth-service' });
 
 let app;
 beforeEach(() => {
@@ -59,5 +59,28 @@ describe('PATCH /api/inspections/:id/status', () => {
     const res = await request(app).patch('/api/inspections/does-not-exist/status')
       .set('Authorization', `Bearer ${token('engineer')}`).send({ status: 'submitted' });
     expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /api/inspections', () => {
+  test('lists inspections with the most urgent first', async () => {
+    const auth = { Authorization: `Bearer ${token('inspector')}` };
+    await request(app).post('/api/inspections').set(auth).send({ ...body, conditionRating: 4 });
+    await request(app).post('/api/inspections').set(auth).send({ ...body, conditionRating: 1 });
+    const res = await request(app).get('/api/inspections').set(auth);
+    expect(res.body.map((r) => r.priority)).toEqual(['IMMEDIATE', 'MONITOR']);
+  });
+
+  test('a manager can read but not create', async () => {
+    const list = await request(app).get('/api/inspections').set('Authorization', `Bearer ${token('manager')}`);
+    const create = await request(app).post('/api/inspections')
+      .set('Authorization', `Bearer ${token('manager')}`).send(body);
+    expect([list.status, create.status]).toEqual([200, 403]);
+  });
+
+  test('401 for a token signed by the wrong issuer', async () => {
+    const fake = jwt.sign({ sub: 'x', role: 'engineer' }, process.env.JWT_SECRET, { issuer: 'someone-else' });
+    const res = await request(app).get('/api/inspections').set('Authorization', `Bearer ${fake}`);
+    expect(res.status).toBe(401);
   });
 });
