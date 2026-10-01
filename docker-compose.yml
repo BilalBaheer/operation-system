@@ -1,0 +1,56 @@
+# Local integrated environment: PostgreSQL + auth-service + inspection-service + web gateway.
+# Usage: cp .env.example .env && docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: project_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 10
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/auth_db
+      JWT_SECRET: ${JWT_SECRET}
+      DB_SSL: ${DB_SSL}
+    command: sh -c "node scripts/migrate.js && node src/server.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  inspection-service:
+    build: ./inspection-service
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/project_db
+      JWT_SECRET: ${JWT_SECRET}
+      REPO_DRIVER: ${REPO_DRIVER}
+      DB_SSL: ${DB_SSL}
+    command: sh -c "node scripts/migrate.js && node src/server.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:4001
+      INSPECTION_SERVICE_URL: http://inspection-service:4002
+    ports:
+      - "3000:3000"   # only the gateway is exposed to the host
+    depends_on:
+      - auth-service
+      - inspection-service
+
+volumes:
+  pgdata:
