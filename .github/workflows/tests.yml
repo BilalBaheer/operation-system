@@ -1,4 +1,4 @@
-name: inspection-service tests
+name: OMS tests
 
 on:
   push:
@@ -9,13 +9,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: inspection-service
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: oms_ci
+          POSTGRES_PASSWORD: oms_ci
+          POSTGRES_DB: project_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U oms_ci" --health-interval 5s --health-retries 10
+    env:
+      JWT_SECRET: ci-only-secret
+      DATABASE_URL: postgres://oms_ci:oms_ci@localhost:5432/project_db
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
-      - run: npm run test:coverage
+      - name: inspection-service unit tests + coverage
+        working-directory: inspection-service
+        run: npm ci && npm run test:coverage
+      - name: inspection-service integration tests (real PostgreSQL)
+        working-directory: inspection-service
+        run: npm run migrate && npm run test:integration
+      - name: auth-service tests
+        working-directory: auth-service
+        run: npm ci && npm test

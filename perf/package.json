@@ -1,0 +1,12 @@
+{
+  "name": "oms-perf",
+  "private": true,
+  "description": "Demo data and load tests for the OMS inspection system",
+  "scripts": {
+    "seed-demo": "node seed-demo.js",
+    "load-test": "node load-test.js"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0"
+  }
+}

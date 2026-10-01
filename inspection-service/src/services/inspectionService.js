@@ -55,7 +55,15 @@ function createInspectionService({ repository, publisher }) {
     return updated;
   }
 
-  return { createInspection, changeStatus };
+  async function listInspections(filters) {
+    return repository.list(filters);
+  }
+
+  async function getInspection(id) {
+    return repository.findById(id);
+  }
+
+  return { createInspection, changeStatus, listInspections, getInspection };
 }
 
 module.exports = { createInspectionService, ValidationError, WorkflowError };

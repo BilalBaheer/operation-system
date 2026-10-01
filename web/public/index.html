@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OMS – Inspection Records</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">OMS</span> Inspection Records</div>
+    <div id="userBox" class="user hidden">
+      <span id="userName"></span> <span id="userRole" class="role"></span>
+      <button id="logoutBtn" class="link">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Login -->
+    <section id="loginView" class="card narrow">
+      <h1>Sign in</h1>
+      <form id="loginForm" novalidate>
+        <label for="email">Work email</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button type="submit" class="primary">Sign in</button>
+        <p id="loginMsg" class="msg" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="appView" class="hidden">
+      <div class="grid">
+        <section class="card" id="formCard">
+          <h2>New inspection</h2>
+          <form id="inspectionForm" novalidate>
+            <div class="row">
+              <div><label for="projectId">Project</label><input id="projectId" placeholder="PRJ-104"></div>
+              <div><label for="structureId">Structure</label><input id="structureId" placeholder="PIER-7"></div>
+            </div>
+            <div class="row">
+              <div><label for="inspectionDate">Inspection date</label><input id="inspectionDate" type="date"></div>
+              <div>
+                <label for="conditionRating">Condition rating</label>
+                <select id="conditionRating">
+                  <option value="">Choose…</option>
+                  <option value="5">5 – Good</option>
+                  <option value="4">4 – Satisfactory</option>
+                  <option value="3">3 – Fair</option>
+                  <option value="2">2 – Poor</option>
+                  <option value="1">1 – Critical</option>
+                </select>
+              </div>
+            </div>
+            <fieldset>
+              <legend>Findings</legend>
+              <div id="findings"></div>
+              <button type="button" id="addFinding" class="link">+ Add finding</button>
+            </fieldset>
+            <button type="submit" class="primary">Save as draft</button>
+            <div id="formMsg" class="msg" role="alert" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <section class="card" id="listCard">
+          <div class="list-head">
+            <h2>Inspections</h2>
+            <div class="filters">
+              <label for="fPriority" class="sr">Priority</label>
+              <select id="fPriority"><option value="">All priorities</option><option>IMMEDIATE</option><option>HIGH</option><option>ROUTINE</option><option>MONITOR</option></select>
+              <label for="fStatus" class="sr">Status</label>
+              <select id="fStatus"><option value="">All statuses</option><option>draft</option><option>submitted</option><option>approved</option></select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Priority</th><th>Project / Structure</th><th>Date</th><th>Rating</th><th>Findings</th><th>Status</th><th></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <p id="emptyMsg" class="muted hidden">No inspections match these filters.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

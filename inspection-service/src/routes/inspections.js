@@ -14,6 +14,25 @@ function createInspectionRouter(service) {
     }
   });
 
+  router.get('/', requireRole('inspector', 'engineer', 'manager'), async (req, res, next) => {
+    try {
+      const { projectId, priority, status } = req.query;
+      res.json(await service.listInspections({ projectId, priority, status }));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get('/:id', requireRole('inspector', 'engineer', 'manager'), async (req, res, next) => {
+    try {
+      const record = await service.getInspection(req.params.id);
+      if (!record) return res.status(404).json({ error: 'Inspection not found' });
+      res.json(record);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.patch('/:id/status', requireRole('inspector', 'engineer'), async (req, res, next) => {
     try {
       const record = await service.changeStatus(req.user, req.params.id, req.body.status);
