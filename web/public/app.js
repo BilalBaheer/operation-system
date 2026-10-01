@@ -19,6 +19,21 @@ async function api(path, options = {}) {
   return { ok: res.ok, status: res.status, data };
 }
 
+// Turns API validation messages into plain language and remembers which field each one belongs to
+const FRIENDLY = [
+  [/^projectId/, 'projectId', 'Enter the project number (for example PRJ-104).'],
+  [/^structureId/, 'structureId', 'Enter the structure ID (for example PIER-7).'],
+  [/^conditionRating/, 'conditionRating', 'Choose a condition rating from 1 (Critical) to 5 (Good).'],
+  [/^inspectionDate cannot/, 'inspectionDate', 'The inspection date can\u2019t be in the future.'],
+  [/^inspectionDate/, 'inspectionDate', 'Pick the date the inspection was done.'],
+];
+function friendly(msg) {
+  const f = msg.match(/^findings\[(\d+)\]\.(element|severity)/);
+  if (f) return { field: null, text: `Finding #${Number(f[1]) + 1} needs a ${f[2] === 'element' ? 'structural element name' : 'severity'}.` };
+  const hit = FRIENDLY.find(([re]) => re.test(msg));
+  return hit ? { field: hit[1], text: hit[2] } : { field: null, text: msg };
+}
+
 // ---------- login ----------
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -67,7 +82,8 @@ $('inspectionForm').addEventListener('submit', async (e) => {
   const findings = [...document.querySelectorAll('.finding')].map((r) => ({
     element: r.querySelector('input').value.trim(),
     severity: r.querySelector('select').value,
-  }));
+  })).filter((f) => f.element !== ''); // an empty row just means "no finding"
+  document.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
   const body = {
     projectId: $('projectId').value.trim(),
     structureId: $('structureId').value.trim(),
@@ -77,8 +93,10 @@ $('inspectionForm').addEventListener('submit', async (e) => {
   };
   const { ok, data } = await api('/api/inspections', { method: 'POST', body });
   if (!ok) {
-    const list = (data.errors || [data.error]).map((m) => `<li>${esc(m)}</li>`).join('');
-    return showMsg('formMsg', `<strong>Please fix the following:</strong><ul>${list}</ul>`, 'error', true);
+    const problems = (data.errors || [data.error]).map(friendly);
+    problems.forEach((p) => p.field && $(p.field).setAttribute('aria-invalid', 'true'));
+    const list = problems.map((p) => `<li>${esc(p.text)}</li>`).join('');
+    return showMsg('formMsg', `<strong>Almost there \u2013 please fix ${problems.length === 1 ? 'this' : 'these'}:</strong><ul>${list}</ul>`, 'error', true);
   }
   showMsg('formMsg', `Saved. Repair priority: <b>${data.priority}</b>`, 'success', true);
   e.target.reset(); $('findings').innerHTML = ''; addFindingRow();

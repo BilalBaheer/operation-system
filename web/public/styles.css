@@ -38,3 +38,4 @@ td { border-bottom:1px solid var(--border); padding:9px 8px; vertical-align:midd
 .actions { white-space:nowrap; } .actions .small { margin-right:4px; }
 .muted { color:var(--muted); font-size:12px; } .hidden { display:none !important; }
 .sr { position:absolute; left:-9999px; }
+input[aria-invalid], select[aria-invalid] { border:2px solid #c62828; background:#fff7f6; }
