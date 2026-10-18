@@ -1,4 +1,4 @@
-# Operation System (OMS) – Inspection Record Management Module
+# Operation System 
 
 Cloud-based Operations Management System module for recording, prioritizing, and reviewing
 structural inspections (piers, wharves, bridges). Built for my MSIT capstone.
