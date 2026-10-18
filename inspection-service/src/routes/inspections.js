@@ -1,6 +1,6 @@
 const express = require('express');
 const { requireRole } = require('../middleware/requireRole');
-const { ValidationError, WorkflowError } = require('../services/inspectionService');
+const { ValidationError, WorkflowError, PermissionError } = require('../services/inspectionService');
 
 function createInspectionRouter(service) {
   const router = express.Router();
@@ -46,6 +46,7 @@ function createInspectionRouter(service) {
   // Turn known errors into clean HTTP responses
   router.use((err, req, res, next) => {
     if (err instanceof ValidationError) return res.status(400).json({ errors: err.errors });
+    if (err instanceof PermissionError) return res.status(403).json({ error: err.message });
     if (err instanceof WorkflowError) return res.status(409).json({ error: err.message });
     next(err);
   });
