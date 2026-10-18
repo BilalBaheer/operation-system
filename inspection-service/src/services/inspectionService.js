@@ -15,6 +15,14 @@ class WorkflowError extends Error {
   }
 }
 
+// The user is logged in but their role is not allowed to do this (HTTP 403)
+class PermissionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'PermissionError';
+  }
+}
+
 /**
  * The service holds the business rules. The repository (database) and
  * publisher (Azure Service Bus) are passed in, so tests can swap in fakes.
@@ -47,7 +55,7 @@ function createInspectionService({ repository, publisher }) {
       throw new WorkflowError(`Cannot move inspection from ${record.status} to ${newStatus}`);
     }
     if (newStatus === 'approved' && user.role !== 'engineer') {
-      throw new WorkflowError('Only engineers can approve inspections');
+      throw new PermissionError('Only engineers can approve inspections');
     }
 
     const updated = await repository.update(id, { status: newStatus });
@@ -66,4 +74,4 @@ function createInspectionService({ repository, publisher }) {
   return { createInspection, changeStatus, listInspections, getInspection };
 }
 
-module.exports = { createInspectionService, ValidationError, WorkflowError };
+module.exports = { createInspectionService, ValidationError, WorkflowError, PermissionError };

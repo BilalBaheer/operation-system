@@ -1,6 +1,6 @@
 // Unit tests for the service layer. The database and Service Bus are replaced with Jest mocks
 // so the service's own logic is tested in isolation.
-const { createInspectionService, ValidationError, WorkflowError } = require('../src/services/inspectionService');
+const { createInspectionService, ValidationError, WorkflowError, PermissionError } = require('../src/services/inspectionService');
 
 function setup(existingRecord = null) {
   const repository = {
@@ -54,7 +54,7 @@ describe('changeStatus', () => {
 
   test('an inspector cannot approve', async () => {
     const { service } = setup({ id: 'insp-1', status: 'submitted' });
-    await expect(service.changeStatus(inspector, 'insp-1', 'approved')).rejects.toBeInstanceOf(WorkflowError);
+    await expect(service.changeStatus(inspector, 'insp-1', 'approved')).rejects.toBeInstanceOf(PermissionError);
   });
 
   test('returns null when the inspection does not exist', async () => {

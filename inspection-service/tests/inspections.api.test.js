@@ -55,6 +55,16 @@ describe('PATCH /api/inspections/:id/status', () => {
     expect(res.status).toBe(409);
   });
 
+  test('403 (not 409) when an inspector tries to approve a submitted inspection', async () => {
+    const created = await request(app).post('/api/inspections')
+      .set('Authorization', `Bearer ${token('inspector')}`).send(body);
+    await request(app).patch(`/api/inspections/${created.body.id}/status`)
+      .set('Authorization', `Bearer ${token('inspector')}`).send({ status: 'submitted' });
+    const res = await request(app).patch(`/api/inspections/${created.body.id}/status`)
+      .set('Authorization', `Bearer ${token('inspector')}`).send({ status: 'approved' });
+    expect(res.status).toBe(403);
+  });
+
   test('404 for an inspection that does not exist', async () => {
     const res = await request(app).patch('/api/inspections/does-not-exist/status')
       .set('Authorization', `Bearer ${token('engineer')}`).send({ status: 'submitted' });
