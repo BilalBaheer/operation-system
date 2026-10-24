@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bilal Baheer | OMS Inspection Module, MSIT Capstone</title>
+<meta name="description" content="Capstone project by Bilal Baheer: a cloud-ready inspection record module that ranks piers, wharves, and bridges by repair urgency. Node.js, Express, PostgreSQL, Docker, tested at four levels.">
+<meta property="og:title" content="OMS Inspection Module, MSIT Capstone by Bilal Baheer">
+<meta property="og:description" content="Inspection records in one place, ranked by repair urgency, with an enforced review workflow.">
+<meta property="og:image" content="assets/dashboard.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --harbor:#0E3546; --tide:#2F7F86; --concrete:#EEF1F2; --paper:#FFFFFF; --ink:#172026; --muted:#4C5A63; --rule:#C9D1D5;
+  --immediate:#B42318; --high:#B5430A; --routine:#8A5A00; --monitor:#3F6212;
+  --display:"Archivo", "Arial Narrow", Arial, sans-serif;
+  --body:"Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --harbor:#9FD3DA; --tide:#6CC0C8; --concrete:#13232B; --paper:#0C1A20; --ink:#E6EDEF; --muted:#A7B6BD; --rule:#2A3E47;
+    --immediate:#FF8A80; --high:#FFA36B; --routine:#F2C45A; --monitor:#A6D46A;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto} *{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.65 var(--body)}
+a{color:var(--tide);text-underline-offset:.18em}
+a:hover{color:var(--harbor)}
+:focus-visible{outline:3px solid var(--tide);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-999px;top:0;background:var(--harbor);color:var(--paper);padding:.6rem 1rem}
+.skip:focus{left:1rem;top:1rem;z-index:10}
+.wrap{max-width:72rem;margin:0 auto;padding:0 1.5rem}
+header.site{border-bottom:1px solid var(--rule)}
+header.site .wrap{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1rem;padding-bottom:1rem;flex-wrap:wrap}
+.name{font:700 1.05rem/1 var(--display);letter-spacing:.01em;color:var(--ink);text-decoration:none}
+nav ul{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{color:var(--ink);text-decoration:underline}
+
+/* hero */
+.hero{background:var(--concrete);border-bottom:1px solid var(--rule)}
+.hero .wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:3rem;padding-top:4rem;padding-bottom:4rem;align-items:start}
+h1{font:800 clamp(2.2rem,4.6vw,3.6rem)/1.02 var(--display);font-stretch:80%;letter-spacing:-.01em;margin:0 0 1.2rem;color:var(--harbor)}
+.lede{font-size:1.2rem;max-width:34rem;margin:0 0 1.6rem}
+.facts{margin:0;padding:0;list-style:none;color:var(--muted);font-size:.98rem}
+.facts li{padding:.15rem 0}
+.cta{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1.8rem}
+.btn{display:inline-block;padding:.7rem 1.1rem;border-radius:6px;font-weight:600;text-decoration:none;border:2px solid var(--harbor)}
+.btn.primary{background:var(--harbor);color:var(--paper)}
+.btn.primary:hover{color:var(--paper);background:var(--tide);border-color:var(--tide)}
+.btn.secondary{color:var(--harbor)}
+
+/* live priority demo */
+.demo{background:var(--paper);border:2px solid var(--harbor);border-radius:10px;padding:1.5rem}
+.demo h2{font:700 1.25rem/1.2 var(--display);margin:0 0 .3rem}
+.demo p.hint{margin:0 0 1.1rem;color:var(--muted);font-size:.95rem}
+fieldset{border:0;margin:0 0 1rem;padding:0}
+legend{font-weight:600;margin-bottom:.45rem}
+.ratings{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem}
+.ratings label{display:block;text-align:center;border:1px solid var(--rule);border-radius:6px;padding:.45rem .2rem;cursor:pointer;font-size:.9rem;line-height:1.25}
+.ratings input{position:absolute;opacity:0}
+.ratings input:checked+span{font-weight:700}
+.ratings label:has(input:checked){border-color:var(--harbor);background:var(--concrete);box-shadow:inset 0 0 0 1px var(--harbor)}
+.ratings label:has(input:focus-visible){outline:3px solid var(--tide);outline-offset:2px}
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.findings label{font-size:.92rem;color:var(--muted);display:block}
+.findings input{width:100%;margin-top:.25rem;padding:.45rem;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px}
+.result{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--rule);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.badge{font:800 1.5rem/1 var(--display);font-stretch:85%;padding:.5rem .8rem;border-radius:6px;color:var(--paper);background:var(--monitor);transition:background-color .25s}
+@media (prefers-color-scheme: dark){.badge{color:#0C1A20}}
+.badge[data-p="IMMEDIATE"]{background:var(--immediate)}
+.badge[data-p="HIGH"]{background:var(--high)}
+.badge[data-p="ROUTINE"]{background:var(--routine)}
+.why{margin:0;font-size:.95rem;flex:1;min-width:12rem}
+
+/* sections */
+section{padding:3.5rem 0;border-bottom:1px solid var(--rule)}
+h2.sec{font:700 clamp(1.6rem,2.6vw,2.1rem)/1.15 var(--display);font-stretch:85%;margin:0 0 1rem;color:var(--harbor)}
+.prose{max-width:42rem}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start}
+figure{margin:0}
+figure img{width:100%;height:auto;border:1px solid var(--rule);border-radius:6px;display:block;background:#fff}
+figcaption{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+table{border-collapse:collapse;width:100%;max-width:42rem;font-size:.98rem}
+th,td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.deliverables{list-style:none;margin:0;padding:0;max-width:46rem}
+.deliverables li{display:grid;grid-template-columns:14rem 1fr;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
+.deliverables strong{font-weight:600}
+.deliverables span{color:var(--muted)}
+.soon{color:var(--muted);font-style:italic}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:1.5rem}
+footer{padding:2.5rem 0 3rem;color:var(--muted);font-size:.95rem}
+
+@media (max-width:860px){
+  .hero .wrap,.split{grid-template-columns:1fr;gap:2rem}
+  .gallery{grid-template-columns:1fr}
+  .deliverables li{grid-template-columns:1fr;gap:.2rem}
+}
+@media (max-width:480px){
+  .ratings{grid-template-columns:repeat(5,1fr);gap:.25rem}
+  .ratings label{font-size:.8rem}
+  .findings{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="#top">Bilal Baheer</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#design">Design</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#deliverables">Deliverables</a></li>
+        <li><a href="https://github.com/BilalBaheer/operation-system">GitHub</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <h1>Which pier needs repair first?</h1>
+        <p class="lede">My MSIT capstone is a cloud-ready inspection module that keeps every pier, wharf, and bridge inspection in one place, ranks it by its worst condition, and makes sure an engineer reviews it before anyone acts on it.</p>
+        <ul class="facts">
+          <li>Node.js, Express, PostgreSQL 16, Docker, planned for Azure Container Apps</li>
+          <li>46 automated tests and 12 acceptance tests across four testing levels</li>
+          <li>Built as part of a real Operations Management System at an engineering firm</li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/BilalBaheer/operation-system">View the code</a>
+          <a class="btn secondary" href="assets/OMS-Capstone-Report.pdf">Read the report (PDF)</a>
+        </div>
+      </div>
+
+      <form class="demo" aria-labelledby="demo-title" onsubmit="return false">
+        <h2 id="demo-title">Try the priority rule</h2>
+        <p class="hint">This is the same rule the inspection-service runs on every record.</p>
+        <fieldset>
+          <legend>Overall condition rating</legend>
+          <div class="ratings">
+            <label><input type="radio" name="r" value="1"><span>1<br>Critical</span></label>
+            <label><input type="radio" name="r" value="2"><span>2<br>Poor</span></label>
+            <label><input type="radio" name="r" value="3"><span>3<br>Fair</span></label>
+            <label><input type="radio" name="r" value="4" checked><span>4<br>Satisf.</span></label>
+            <label><input type="radio" name="r" value="5"><span>5<br>Good</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Findings by severity</legend>
+          <div class="findings">
+            <label>Critical<input type="number" id="crit" min="0" max="20" value="1" inputmode="numeric"></label>
+            <label>Major<input type="number" id="major" min="0" max="20" value="0" inputmode="numeric"></label>
+            <label>Minor<input type="number" id="minor" min="0" max="20" value="0" inputmode="numeric"></label>
+          </div>
+        </fieldset>
+        <div class="result" aria-live="polite">
+          <span class="badge" id="badge" data-p="IMMEDIATE">IMMEDIATE</span>
+          <p class="why" id="why">One critical finding outranks a good overall rating.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <section id="problem">
+    <div class="wrap split">
+      <div class="prose">
+        <h2 class="sec">The problem</h2>
+        <p>At a lot of mid-size engineering firms, inspection data splits apart the moment an inspector drives home. Photos go to a shared drive, condition ratings go into a spreadsheet, and the signed report goes into a document system nobody can search by structure.</p>
+        <p>That makes simple questions slow to answer, like which structures need repair first, or whether a record was ever reviewed. This module puts the records in one database, ranks them by repair urgency, and enforces a draft, submitted, approved workflow where only engineers can approve.</p>
+      </div>
+      <figure>
+        <img src="assets/dashboard.png" alt="Inspector dashboard showing a list of inspections sorted with IMMEDIATE priority at the top, next to the new inspection form." width="1360" height="760" loading="lazy">
+        <figcaption>Inspector dashboard. A structure rated 4 with one critical finding goes straight to the top.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="design">
+    <div class="wrap split">
+      <figure>
+        <img src="assets/architecture.png" alt="Architecture diagram: the browser talks only to a web gateway, which routes to an auth-service with its own database and an inspection-service with a project database and an outbox for Azure Service Bus." width="1485" height="824" loading="lazy">
+        <figcaption>Three small services behind one gateway, each with its own database.</figcaption>
+      </figure>
+      <div class="prose">
+        <h2 class="sec">How it's built</h2>
+        <p>The browser only talks to a gateway. Behind it, an auth-service issues one-hour signed tokens, and the inspection-service holds the validation, priority, and workflow rules as plain functions with no database code inside, so they're easy to test.</p>
+        <p>Permissions are checked on the server for every request, never just in the UI. Every change writes an event to an outbox table so other services can react later without losing anything.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="wrap">
+      <h2 class="sec">What testing showed</h2>
+      <div class="split">
+        <div>
+          <table>
+            <caption class="sr-only" style="position:absolute;left:-9999px">Key test and performance results</caption>
+            <thead><tr><th scope="col">Measure</th><th scope="col">Result</th></tr></thead>
+            <tbody>
+              <tr><td>Automated tests (unit, API, integration)</td><td class="num">46 of 46 passed</td></tr>
+              <tr><td>Acceptance tests through the gateway</td><td class="num">11 of 12 passed</td></tr>
+              <tr><td>Read one record, median latency</td><td class="num">13 ms</td></tr>
+              <tr><td>Save one record, median latency</td><td class="num">30 ms</td></tr>
+              <tr><td>Errors under load</td><td class="num">0 in 100,000+ requests</td></tr>
+              <tr><td>Data consistency after write tests</td><td class="num">100%</td></tr>
+              <tr><td>Usability review (out of 5)</td><td class="num">3.2 to 4.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose">
+          <p>The failures were the most useful part. An acceptance test caught the API answering 409 instead of 403 when an inspector tried to approve a record. A unit test had missed it because it only checked the error type. A volume check found the list stops at 100 records, which is now planned work.</p>
+          <p>Numbers came from one shared CPU running everything at once, so they're a lower bound, not a production promise.</p>
+        </div>
+      </div>
+      <div class="gallery">
+        <figure>
+          <img src="assets/acceptance-tests.png" alt="Terminal output of 12 acceptance tests: 11 pass, AT-12 for draft editing fails because the feature is planned for a later version." width="1099" height="614" loading="lazy">
+          <figcaption>Acceptance tests, each tied to a requirement ID.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/stability-test.png" alt="Terminal output of a 60-second stability test showing 13,451 requests, zero errors, and memory leveling off." width="937" height="488" loading="lazy">
+          <figcaption>60-second stability test with memory sampling.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/latency.png" alt="Bar chart of response latency by scenario at the 50th, 90th, and 99th percentile; login is slowest because of password hashing." width="1350" height="690" loading="lazy">
+          <figcaption>Latency by scenario. Login is slow on purpose (bcrypt).</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="deliverables">
+    <div class="wrap">
+      <h2 class="sec">Deliverables</h2>
+      <ul class="deliverables">
+        <li><strong><a href="https://github.com/BilalBaheer/operation-system">Source code</a></strong><span>Full repository with tagged releases from v0.1.0 to v1.1.1, a changelog, and setup steps in the README.</span></li>
+        <li><strong><a href="assets/OMS-Capstone-Report.pdf">Capstone report</a></strong><span>Literature review, requirements, architecture, testing results, deployment and maintenance plans.</span></li>
+        <li><strong><a href="https://github.com/BilalBaheer/operation-system/tree/main/deploy">Deployment guide</a></strong><span>Docker Compose for local use and step-by-step Azure Container Apps commands, including rollback.</span></li>
+        <li><strong><a href="https://github.com/BilalBaheer/operation-system/tree/main/perf">Test scripts</a></strong><span>Acceptance, load, and stability tests anyone can rerun against the running system.</span></li>
+        <li><strong>Demo video</strong><span class="soon">Short walkthrough of login, creating an inspection, and engineer approval. Coming with the final submission.</span></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Bilal Baheer, software engineer. Capstone for the Master of Science in Information Technology, University of the People, 2026. Demo data is synthetic, and no client information appears on this page.</p>
+    <p><a href="https://github.com/BilalBaheer">GitHub profile</a></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var form=document.querySelector('.demo'), badge=document.getElementById('badge'), why=document.getElementById('why');
+  function n(id){var v=parseInt(document.getElementById(id).value,10);return isNaN(v)||v<0?0:v;}
+  function update(){
+    var r=parseInt(form.querySelector('input[name=r]:checked').value,10), c=n('crit'), m=n('major'), p, t;
+    if(r===1||c>0){p='IMMEDIATE';t=r===1?'A rating of 1 (Critical) always means immediate repair.':'One critical finding outranks a good overall rating.';}
+    else if(r===2||m>=2){p='HIGH';t=r===2?'A rating of 2 (Poor) means high priority.':'Two or more major findings push this up to high.';}
+    else if(r===3||m===1){p='ROUTINE';t=r===3?'A rating of 3 (Fair) means routine repair.':'One major finding means routine repair.';}
+    else{p='MONITOR';t='Nothing urgent. Keep an eye on it at the next inspection.';}
+    badge.textContent=p; badge.setAttribute('data-p',p); why.textContent=t;
+  }
+  form.addEventListener('input',update); update();
+})();
+</script>
+</body>
+</html>
